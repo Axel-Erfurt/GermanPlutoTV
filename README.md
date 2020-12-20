@@ -17,7 +17,7 @@ Player zum Abspielen von Pluto TV Streams.
 
 ### Starten
 
-```cd PlutoTV```
+```cd GermanPlutoTV```
 
 ```python3 ./PlutoTV.py```
 
