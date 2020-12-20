@@ -7,7 +7,7 @@ import requests
 from datetime import datetime, timedelta
 import locale
 from datetime import date
-from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QAction, QToolBar
+from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QAction, QToolBar, QLineEdit
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
@@ -121,6 +121,11 @@ class Browser(QMainWindow):
       self.my_html = self.grabber.makeList()
       self.createMenu() 
       self.loadURL()
+      
+    def findWord(self):
+        find = self.findfield.text()
+        print(find)
+        self.html.findText(find)
 
       
     def createMenu(self):
@@ -129,6 +134,12 @@ class Browser(QMainWindow):
         self.tb.setMovable(False)
         self.tb.setContextMenuPolicy(Qt.PreventContextMenu)
         self.tb.setStyleSheet("QToolBar {border: 0px,}")
+        self.findfield = QLineEdit()
+        self.findfield.setPlaceholderText("suchen ...")
+        self.findfield.setStyleSheet("background: #2e3436; color: #eeeeec;")
+        self.findfield.setClearButtonEnabled(True)
+        self.findfield.returnPressed.connect(self.findWord)
+        self.tb.addWidget(self.findfield)
         self.addToolBar(Qt.LeftToolBarArea, self.tb)
         self.tb.setStyleSheet("QToolBar {background: #2e3436;} QToolButton {font-size: 8pt; color: #729fcf;} QToolButton::hover { background: #edd400; color: #2e3436;}")
 
