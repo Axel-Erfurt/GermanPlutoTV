@@ -21,6 +21,10 @@ Player zum Abspielen von Pluto TV Streams.
 
 ```python3 ./PlutoTV.py```
 
+### Favoriten
+
+per Menü hinzufügen, Löschen in der Datei favoriten.txt
+
 
 ### Tastaturkürzel
 - q = Beenden
