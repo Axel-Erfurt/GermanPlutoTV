@@ -226,11 +226,12 @@ class MainWindow(QMainWindow):
             self.recording_enabled = True
         else:
             self.msgbox("ffmpeg nicht gefunden\nkeine Aufnahme möglich")
-            
+   
         self.show()
         self.readSettings()            
-
         self.createMenu()
+        self.showNotification(f"Pluto TV\n{self.channelname}", 2000) 
+        self.getEPG_detail()
         
     def showNotification(self, message, timeout):
         self.notification = Notification()
@@ -294,19 +295,13 @@ class MainWindow(QMainWindow):
             self.channelname = self.settings.value("lastName")
             self.mediaPlayer.play(self.link)
             print(f"aktueller Sender: {self.channelname}\nURL: {self.link}")
-            self.getEPG()
         else:
             if len(self.own_list) > 0:
                 self.play_own(0)
-                self.getEPG()
-            else:
-                self.playARD()
-                self.getEPG()
         if self.settings.contains("volume"):
             vol = self.settings.value("volume")
             print("setze Lautstärke auf", vol)
             self.mediaPlayer.volume = (int(vol))
-        self.mediaPlayer.show_text("Stream URLs werden aktualisiert", duration="3000", level=None) 
         
     def writeSettings(self):
         print("schreibe Konfigurationsdatei ...")
