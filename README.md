@@ -41,3 +41,14 @@ per Menü hinzufügen, Löschen in der Datei favoriten.txt
 - j = was gerade läuft
 - e = EPG Details
 - Doppelklick = Vollbild an/aus
+
+
+### App
+
+[Downlad 64bit](https://www.dropbox.com/s/mmw18vse9nzi5hp/PlutoTV64.zip?dl=1)
+
+entpacken
+
+```cd /Pfad/zu/PlutoTV```
+
+```./PlutoTV```
