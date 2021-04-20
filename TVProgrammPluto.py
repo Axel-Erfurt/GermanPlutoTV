@@ -2,18 +2,15 @@
 # -*- coding: utf-8 -*-
 import sys 
 import requests
-import time
-import requests
 from datetime import datetime, timedelta
 import locale
 from datetime import date
-from PyQt5.QtWidgets import QMainWindow, QWidget, QApplication, QAction, QToolBar, QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, QToolBar, QSizePolicy
 from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QIcon
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
-from bs4 import BeautifulSoup
 
-chList = ['Pluto TV Kids', 'Pluto TV History+', 'Pluto TV Animals+', 'Pluto TV Inside+', 'World Poker Tour', 'FailArmy', 'Pluto TV Explore', 'Pluto TV Sports', 'IGN', 'MinecrafTV', 'Pluto TV Fight', 'Glory Kickboxing', 'MST3K', 'The Pet Collective', 'Rifftrax', 'Action Sports', 'Fireplace', 'Pluto TV Nature', 'Pluto TV Movies', 'MTV Pluto TV', 'MTV The Shores', 'MTV Dating', 'The Asylum Channel', 'Pluto TV Kids Jr.', 'Pluto TV Sitcoms+', 'Pluto TV Indies', 'Ice Pilots', 'MTV Christmas Songs', 'MTV Teen Mom', 'MTV The Hills', 'SpongeBob Schwammkopf', 'Pluto TV Movies+(DE)', 'Pluto TV Surf', 'CC Pluto TV', 'CC Made in Germany', 'Totally Turtles', 'Slow TV', 'Pluto TV Mistletoe', 'Pluto TV Sitcoms', 'Pluto TV Animals', 'Pluto TV History', 'Pluto TV Inside', 'Pluto TV Dogs', 'Pluto TV Documentaries', 'Pluto TV Lives', 'Pluto TV Cats 24/7', 'MTV Catfish TV Show', 'Inspector Gadget', 'Simsalabim Sabrina', 'Mario vs. Sonic', 'Pluto TV Drama', 'Pluto TV Food', 'Pluto TV Romance', 'Pluto TV Christmas', 'Unbeaten Esports', 'Pluto TV Family', 'Comedy Central+', 'MTV Pluto TV+', 'Pluto TV Drama+', 'Pluto TV Retro Drama', 'Strongman', 'Pluto TV Retro Toons', 'Pluto TV Comedy', 'Pluto TV Thrillers', 'Dora TV', 'Being Human', 'Pluto TV Crime', 'MTV Catfish TV Show+', 'CC Made in Germany+', 'Sanctuary', 'Dark Matter', 'Pluto TV Fitness', 'Pluto TV Yoga', 'Beyblade Burst', "Blue's Clues", 'iCarly', 'Bubble Guppies', 'Sam & Cat', 'Victorious', 'Blaze', 'Pluto TV Chefkoch', 'MTV Teen (OV)', 'MTV Dating (OV)', 'MTV The Hills (OV)', 'MTV Cribs', 'Totally Turtles (OV)', 'People are Awesome', 'Pluto TV Home', 'Wipeout (OV)', 'Nick Rewind', 'Nick Pluto TV', 'Nick Jr. Pluto TV', 'Auction Hunters', 'Storage Wars', 'MTV Cribs+', 'Insight TV', 'Teen Nick', 'InWonder', 'InTrouble', 'Focus TV Reportage', 'Nick Pluto TV+', 'Nick Rewind+', 'Spongebob Schwammkopf+', 'iCarly+', 'Emma, einfach magisch!', 'Auto Motor Sport', 'Nick Christmas', 'Holiday Lights', 'Beat Club', 'Pluto TV Paranormal']
+chList = []
+idList = []
 
 class Grabber():
 
@@ -42,11 +39,9 @@ class Grabber():
         self.dt = f"{date.today():%A, %-d.%B %Y}"
         self.titleList = []
         
-        now = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.000Z')
+        now = (datetime.now() - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
         later = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
-
-        myday = f"{date.today():%d}"
         print("Tag:", self.dt)
 
         ### json von Hoerzu laden
@@ -55,6 +50,14 @@ class Grabber():
         
         ### to json 
         self.data = self.response.json() 
+        
+        for ch in self.data:
+            name = ch['name'].replace('Pluto TV ', '')
+            chList.append(name)
+            id = ch['_id']
+            idList.append(id)
+            
+        print(len(chList))
 
 
     ### Daten jedes in dictList enthaltenen Senders verarbeiten und zu HTML konvertieren
@@ -75,7 +78,7 @@ class Grabber():
                 
                 pmld = '\n'.join(pmdlist)
                 
-                self.titleList.append(f'<table>')
+                self.titleList.append('<table>')
                                     
                 self.titleList.append(f"<tr><td>{pmld}</td></tr></table>")
 
@@ -84,7 +87,7 @@ class Grabber():
         print("Kanäle:", len(chList))
         self.titleList.append(self.header)
         m = f"<font color='#729fcf'><h4><i>{self.dt}</i></h4></font>"
-        self.titleList.append(f'<p style="font-size: 30px; \
+        self.titleList.append('<p style="font-size: 30px; \
                             line-height: 1px; color: #babdb6;text-shadow: \
                             1px 1px 1px #555753;">TV Programm</p>')
         self.titleList.append(m)
@@ -112,56 +115,58 @@ class Browser(QMainWindow):
       self.grabber = Grabber()
       self.stationActs = []
     
-      self.setGeometry(0, 0, 1000, 950)
+      w = QApplication.desktop().screenGeometry().width()
+      self.setGeometry(0, 0, w, 850)
  
       self.html = QWebEngineView()
       self.html.page().settings().setAttribute(QWebEngineSettings.ShowScrollBars,False)
       self.setCentralWidget(self.html)
       
+      self.stylesheet = "QToolBar {background: #2e3436;} QToolButton {font-size: 7pt; color: #a5dcff;} QToolButton::hover { background: #edd400; color: #2e3436;}"
+      
       self.my_html = self.grabber.makeList()
       self.createMenu() 
       self.loadURL()
-      
-    def findWord(self):
-        find = self.findfield.text()
-        print(find)
-        self.html.findText(find)
 
       
     def createMenu(self):
         i = 0
         self.tb = QToolBar("Sender")
+        self.tb.setOrientation(Qt.Vertical)
+        self.tb.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
         self.tb.setMovable(False)
         self.tb.setContextMenuPolicy(Qt.PreventContextMenu)
         self.tb.setStyleSheet("QToolBar {border: 0px,}")
-        self.findfield = QLineEdit()
-        self.findfield.setPlaceholderText("suchen ...")
-        self.findfield.setStyleSheet("background: #2e3436; color: #eeeeec;")
-        self.findfield.setClearButtonEnabled(True)
-        self.findfield.returnPressed.connect(self.findWord)
-        self.tb.addWidget(self.findfield)
         self.addToolBar(Qt.LeftToolBarArea, self.tb)
-        self.tb.setStyleSheet("QToolBar {background: #2e3436;} QToolButton {font-size: 8pt; color: #729fcf;} QToolButton::hover { background: #edd400; color: #2e3436;}")
+        self.tb.setStyleSheet(self.stylesheet)
+        self.addToolBarBreak(Qt.LeftToolBarArea)
 
         self.tb2 = QToolBar("Sender")
         self.tb2.setMovable(False)
         self.tb2.setContextMenuPolicy(Qt.PreventContextMenu)
         self.tb2.setStyleSheet("QToolBar {border: 0px,}")
-        self.addToolBar(Qt.RightToolBarArea, self.tb2)
-        self.tb2.setStyleSheet("QToolBar {background: #2e3436;} QToolButton {font-size: 8pt; color: #729fcf;} QToolButton::hover { background: #edd400; color: #2e3436;} QToolBar::separator {background: #729fcf; height: 1px;}")
+        self.addToolBar(Qt.LeftToolBarArea, self.tb2)
+        self.tb2.setStyleSheet(self.stylesheet)
+
+        self.tb3 = QToolBar("Sender")
+        self.tb3.setMovable(False)
+        self.tb3.setContextMenuPolicy(Qt.PreventContextMenu)
+        self.tb3.setStyleSheet("QToolBar {border: 0px,}")
+        self.addToolBar(Qt.RightToolBarArea, self.tb3)
+        self.tb3.setStyleSheet(self.stylesheet)
         
         tbnames1 = []
         tbindexes = []
         x = 0
         for ch in chList:
             title = ch
-            id = x
+            id = idList[x]
             #print(x)
             tbnames1.append(title)
             tbindexes.append(ch)
             x += 1
             
-        for x in range(len(tbnames1[:55])):
+        for x in range(len(tbnames1[:39])):
             title = tbnames1[x]
             id = tbindexes[x]                 
             chm_action = QAction(title, self, triggered = self.showFromMenu)
@@ -171,7 +176,7 @@ class Browser(QMainWindow):
             i =+ 1
 
         #i = 0            
-        for x in range(55, len(tbnames1)):
+        for x in range(39, 78):
             title = tbnames1[x]
             id = tbindexes[x]                 
             chm_action = QAction(title, self, triggered = self.showFromMenu)
@@ -180,7 +185,14 @@ class Browser(QMainWindow):
             self.tb2.addAction(chm_action)
             i =+ 1
             
-        self.tb2.addSeparator()
+        for x in range(78, len(tbnames1)):
+            title = tbnames1[x]
+            id = tbindexes[x]                 
+            chm_action = QAction(title, self, triggered = self.showFromMenu)
+            self.stationActs.append(chm_action)
+            self.stationActs[i].setData(id)
+            self.tb3.addAction(chm_action)
+            i =+ 1
         
     def showFromMenu(self):
         action = self.sender()
