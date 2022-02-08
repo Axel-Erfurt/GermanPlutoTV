@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #############################################################################
+import os
+import sys
+from requests import get
+from datetime import datetime, timedelta
+import locale
+from subprocess import check_output, STDOUT, CalledProcessError
+import mpv
 from PyQt5.QtCore import (QPoint, Qt, QUrl, QProcess, QFile, QDir, QSettings, 
                           QStandardPaths, QRect, QSize, QTimer)
 from PyQt5.QtGui import QIcon, QDesktopServices
@@ -8,13 +15,6 @@ from PyQt5.QtWidgets import (QAction, QApplication, QMainWindow, QMessageBox, QG
                              QMenu, QInputDialog, QLineEdit, QFileDialog, QVBoxLayout, 
                              QFormLayout, QSlider, QPushButton, QDialog, QWidget, QLabel)
 
-import mpv
-import os
-import sys
-from requests import get
-from datetime import datetime, timedelta
-import locale
-from subprocess import check_output, STDOUT, CalledProcessError
 
 mytv = "pluto_logo.png"
 menuicon = "menuicon.png"
@@ -89,8 +89,9 @@ class EPG_Grabber():
         theList = []
         for i in self.data:
             if i['name'] == channel:
+                title = i['timelines'][0]["title"]
                 pr = i['timelines'][0]["episode"]["series"].get("description")
-                theList.append(f"{pr}")
+                theList.append(f"{title}\n\n{pr}")
 
         return theList
 
@@ -230,7 +231,7 @@ class MainWindow(QMainWindow):
         self.show()
         self.readSettings()            
         self.createMenu()
-        self.showNotification(f"Pluto TV\n{self.channelname}", 2000) 
+        #self.showNotification(f"Pluto TV\n{self.channelname}", 2000) 
         self.getEPG_detail()
         
     def showNotification(self, message, timeout):
@@ -318,7 +319,9 @@ class MainWindow(QMainWindow):
     def getBufferStatus(self):
         print(self.mediaPlayer.bufferStatus())
 
-    def createMenu(self):              
+    def createMenu(self):     
+        myMenu = self.channels_menu.addMenu("Favoriten")
+        myMenu.setIcon(QIcon.fromTheme("favorites"))        
         myPlutoMenu = self.channels_menu.addMenu("Pluto TV")
         myPlutoMenu.setIcon(QIcon(mytv))
         if len(self.plutochannels) > 0:
@@ -331,8 +334,7 @@ class MainWindow(QMainWindow):
                 a.setData(url)
                 myPlutoMenu.addAction(a)
                 
-        myMenu = self.channels_menu.addMenu("Favoriten")
-        myMenu.setIcon(QIcon.fromTheme("favorites"))
+
         if len(self.mychannels) > 0:
             for ch in self.mychannels.splitlines():
                 name = ch.partition(",")[0]
@@ -526,16 +528,18 @@ class MainWindow(QMainWindow):
     def getEPG(self):
         self.epg = EPG_Grabber()
         print("ch =", self.channelname)
-        msg = self.epg.getValues(self.channelname)    
+        msg = self.epg.getValues(self.channelname)
+        m = '\n'.join(msg) 
         self.mediaPlayer.osd_font_size = 40
-        self.mediaPlayer.show_text('\n'.join(msg), duration="3000", level=None)
+        self.mediaPlayer.show_text(f"{self.channelname}\n{m}", duration="3000", level=None)
         
     def getEPG_detail(self):
         self.epg = EPG_Grabber()
         print("ch =", self.channelname)
-        msg = self.epg.getValuesDetails(self.channelname)    
+        msg = self.epg.getValuesDetails(self.channelname)   
+        m = '\n'.join(msg) 
         self.mediaPlayer.osd_font_size = 30
-        self.mediaPlayer.show_text('\n'.join(msg), duration="8000", level=None)
+        self.mediaPlayer.show_text(f"{self.channelname}\n{m}", duration="8000", level=None)
 
     def handleFullscreen(self):
         if self.fullscreen == True:
@@ -642,7 +646,7 @@ class MainWindow(QMainWindow):
         print(f"aktueller Sender: {self.channelname}\nURL: {self.link}")
         self.mediaPlayer.play(self.link)
         self.mediaPlayer.show_text(self.channelname, duration="5000", level=None)
-        self.getEPG()
+        self.getEPG_detail()
         
     def playPlutoTV(self):
         action = self.sender()
@@ -655,7 +659,7 @@ class MainWindow(QMainWindow):
         print(f"aktueller Sender: {self.channelname}\nURL: {self.link}")
         self.mediaPlayer.show_text(self.channelname, duration="10000", level=None)
         self.mediaPlayer.play(self.link)
-        self.getEPG()
+        self.getEPG_detail()
         
 
     def play_own(self, channel):
