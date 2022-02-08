@@ -52,7 +52,7 @@ class Grabber():
         self.data = self.response.json() 
         
         for ch in self.data:
-            name = ch['name'].replace('Pluto TV ', '')
+            name = ch['name']#.replace('Pluto TV ', '')
             chList.append(name)
             id = ch['_id']
             idList.append(id)
