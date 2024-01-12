@@ -1,3 +1,10 @@
+## For newer versions of Ubuntu / Mint / Debian !
+
+- rename mpv.py to mpv.py_old and load a newer version of mpv.py
+- Open a terminal in the source folder and
+
+```wget https://raw.githubusercontent.com/jaseg/python-mpv/main/mpv.py```
+
 # GermanPlutoTV
 Pluto TV App
 
